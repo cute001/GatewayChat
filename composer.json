@@ -1,0 +1,23 @@
+{
+    "name": "wuxq/gatewaychat",
+    "description": "websocket gateway",
+	"keywords": [
+	    "websocket",
+	    "php",
+	    "gateway"
+	],
+    "authors": [
+        {
+            "name": "wuxq",
+            "email": "522951870@qq.com"
+        }
+    ],
+    "require": {
+		"workerman/gateway-worker": "^3.0"
+	},
+	"autoload": {
+	    "psr-4": {
+	        "GatewayChat\\":"src"
+	    }
+	}
+}
