@@ -66,7 +66,7 @@ class App
         return $this;
     }
 
-    private function   makeRegister($serve)
+    private function   makeRegister( Config $serve)
     {
         if($serve->get('bus_port') ){
             $register=new Register('text://0.0.0.0:'.$serve->get('bus_port'));
@@ -74,7 +74,7 @@ class App
         }
     }
 
-    private function makeGateway($serve)
+    private function makeGateway( Config $serve)
     {
 
         $port= $serve->get('port');
@@ -83,8 +83,8 @@ class App
         $count=$serve->get('processes');
         $lan_ip=$serve->get('lan_ip');
         $start_port=$serve->get('start_port');
-        $ping_interval=$serve->get('ping_interval');
-        $ping_limit=$serve->get('ping_limit');
+        $ping_interval=$serve->get('ping_interval',55);
+        $ping_limit=$serve->get('ping_limit',3);
         $ping_data=$serve->get('ping_data');
         // gateway 进程，这里使用Text协议，可以用telnet测试，多端口必改
         $gateway = new Gateway("websocket://0.0.0.0:".$port);
@@ -117,7 +117,7 @@ class App
         }
     }
 
-    private function makeBusinessworker($serve)
+    private function makeBusinessworker( Config $serve)
     {
         $bus_port=$serve->get('bus_port');
         $count=$serve->get('worker_count');
@@ -127,13 +127,14 @@ class App
         // bussinessWorker 进程
         $worker = new BusinessWorker();
         // worker名称，多端口必改
-        $worker->name =$name.self::BUSINESS_WORKER;
+        $name=(string)($name.self::BUSINESS_WORKER);
+        $worker->name =$name;
         // bussinessWorker进程数量 CPU核心数
         $worker->count = $count;
         // 服务注册地址 ，多端口必改
         $worker->registerAddress = $lan_ip.':'.$bus_port;
         //回调类
-        $worker->eventHandler= new \GatewayChat\Events();
+        $worker->eventHandler= new \GatewayChat\Events($serve);
     }
 
     public function run()

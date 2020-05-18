@@ -20,7 +20,6 @@ namespace GatewayChat;
 //declare(ticks=1);
 
 use GatewayChat\Contract\EventsInterface;
-use function PHPSTORM_META\type;
 use Workerman\MySQL\Connection;
 /**
  * 主逻辑
@@ -32,6 +31,13 @@ class Events implements EventsInterface
     public  $db = null;
     public  $redis=null;
     private $name;
+    private $config;
+
+    public function __construct( Config $config)
+    {
+        $this->config=$config;
+    }
+
     /**
      * 进程启动后初始化数据库连接
      */
@@ -74,13 +80,13 @@ class Events implements EventsInterface
             $arr=parse_url($url);
             $path=isset($arr['path'])?$arr['path']:'';
             unset($arr);
-            if($path === '/'){
+            $path= rtrim(ltrim($path,'/') ,'/');
+            $controller=Route::get($this->name,$path);
+            if(!$controller){
                 $path='default';
-            }else{
-                $path= rtrim(ltrim($path,'/') ,'/');
+                $controller=Route::get($this->name,$path);
             }
             $_SESSION['_path']=$path;
-            $controller=Route::get($this->name,$path);
             if($controller){
                 $this->callback(
                     $path,
