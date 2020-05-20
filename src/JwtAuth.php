@@ -5,7 +5,7 @@
  * Date: 2020-05-18
  * Time: 14:12
  */
-
+namespace GatewayChat;
 /**
  * PHP实现jwt
  */

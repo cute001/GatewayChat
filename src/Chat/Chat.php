@@ -10,8 +10,9 @@ use GatewayChat\Contract\OnCloseInterface;
 use GatewayChat\Contract\OnConnectInterface;
 use GatewayChat\Contract\OnMessageInterface;
 use GatewayChat\Contract\OnWebSocketConnectInterface;
+use GatewayChat\JwtAuth;
 use GatewayWorker\Lib\Gateway;
-
+use Workerman\MySQL\Connection;
 class Chat implements OnMessageInterface,OnCloseInterface,OnConnectInterface,OnWebSocketConnectInterface
 {
     //用户所在组 所有进入聊天室的即加入此组
@@ -40,41 +41,47 @@ class Chat implements OnMessageInterface,OnCloseInterface,OnConnectInterface,OnW
     public static $group_chat='';
     //聊天室信息（哈希）？？？
     public static $chat_room='';
-    public function onMessage($client_id, $message, $db, \Redis $redis)
+
+    public function onMessage($client_id, $message, Connection $db, \Redis $redis)
     {
         // TODO: Implement onMessage() method.
         $data=json_decode($message,true);
-        if(isset($data['event']) && isset($data['method'])){
-
-        };//method
+        if(isset($data['controller']) && isset($data['method'])){
+            if(is_callable([__NAMESPACE__.'\\'.$data['controller'],$data['method']])){
+                call_user_func_array([__NAMESPACE__.'\\'.$data['controller'],$data['method']],[$client_id, $data,$db, $redis]);
+            }
+        };
     }
 
-    public function onClose($client_id, $db,\Redis $redis)
+    public function onClose($client_id,Connection  $db,\Redis $redis)
     {
         // TODO: Implement onClose() method.
-        if($_SESSION['id']){
+        if(isset( $_SESSION['id']) ){
             $redis->sRem(self::$user_online,$_SESSION['id']);
         }
 
     }
 
-    public function onConnect($client_id, $db,\Redis $redis)
+    public function onConnect($client_id, Connection $db,\Redis $redis)
     {
         // TODO: Implement onConnect() method.
     }
 
-    public function onWebSocketConnect($client_id, $data, $db,\Redis $redis)
+    public function onWebSocketConnect($client_id, $data,Connection $db,\Redis $redis)
     {
         // TODO: Implement onWebSocketConnect() method.
-        if(empty($data['get'])){
-            return false;
+        if(empty($data['get']) || empty($data['get']['token'] ) || empty($data['get']['id'] ) ){
+            Gateway::closeClient('$client_id');
+            return null;
         }
-        //此处放置鉴权，失败则return;
-        Gateway::joinGroup($client_id,self::$group);
-        if(!empty($data['get']['id'])){
-            Gateway::bindUid($client_id,$data['get']['id']);
-            $_SESSION['id']=$data['get']['id'];
-            $redis->sAdd(self::$user_online,$data['get']['id']);
+        $chat=$db->select('token')->from('chat_user')->where('id= :id')->bindValues(array('id'=>$data['get']['id']))->row();
+        if($chat && isset($chat['token'])){
+            $chat =JwtAuth::verifyToken($data['get']['token'],$chat['token']);
+            if( is_array($chat) ){
+                return User::login($client_id,self::$group,$chat['id']);
+            }
         }
+        Gateway::closeClient('$client_id');
+
     }
 }
