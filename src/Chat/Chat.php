@@ -71,7 +71,7 @@ class Chat implements OnMessageInterface,OnCloseInterface,OnConnectInterface,OnW
     {
         // TODO: Implement onWebSocketConnect() method.
         if(empty($data['get']) || empty($data['get']['token'] ) || empty($data['get']['id'] ) ){
-            Gateway::closeClient('$client_id');
+            Gateway::closeClient($client_id);
             return null;
         }
         $chat=$db->select('token')->from('chat_user')->where('id= :id')->bindValues(array('id'=>$data['get']['id']))->row();
@@ -81,7 +81,7 @@ class Chat implements OnMessageInterface,OnCloseInterface,OnConnectInterface,OnW
                 return User::login($client_id,self::$group,$chat['id']);
             }
         }
-        Gateway::closeClient('$client_id');
+        Gateway::closeClient($client_id);
 
     }
 }

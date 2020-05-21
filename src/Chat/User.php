@@ -33,9 +33,10 @@ class User
      * @param int $id 用户chat_user id
      * @return null
      */
-    public static function updateInfo($client_id, $data, Connection $db, \Redis $redis)
+    public static function updateInfo($client_id, $data, Connection $db,  \Redis $redis)
     {
-        if(!empty($data['data'])){
+        if(!empty($data['data']) && !empty($data['data']['id']) ){
+            $redis->hSet(Chat::$user_info, $data['data']['id'],json_encode($data['data'],true));
             $data=['userInfo'=>$data['data'],'type'=>'updateInfo'];
             $data=json_encode($data,true);
             Gateway::sendToGroup(Chat::$group,$data);
