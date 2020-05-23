@@ -64,7 +64,7 @@ class Events implements EventsInterface
             $this->redis= new \Redis();
             $this->redis->connect($redis_host,$redis_port);
         }
-
+        $this->callback('?base',__FUNCTION__,[$worker]);
     }
 
     /**
@@ -140,7 +140,7 @@ class Events implements EventsInterface
 
     public function onWorkerStop($worker)
     {
-
+        $this->callback('?base',__FUNCTION__,[$worker]);
     }
 
     public function callback($path,$fun,$param_arr)
