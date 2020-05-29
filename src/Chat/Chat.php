@@ -88,6 +88,7 @@ class Chat implements OnMessageInterface,OnCloseInterface,OnConnectInterface,OnW
         if($chat && isset($chat['token'])){
             $chat =JwtAuth::verifyToken($data['get']['token'],$chat['token']);
             if( is_array($chat) ){
+                $redis->sAdd(static::$user_online,$chat['id']);
                 return User::login($client_id,self::$group,$chat['id']);
             }
         }

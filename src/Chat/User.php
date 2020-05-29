@@ -43,4 +43,16 @@ class User
         }
     }
 
+    public function getUserList($client_id, $data, Connection $db,  \Redis $redis)
+    {
+        $online=isset($data['online']) ? $data['online'] : $redis->sMembers(Chat::$user_online);
+        if(empty($online)){
+            return false;
+        }
+        $list=$redis->hMGet(Chat::$user_info,$online);
+        $data=['type'=>'recordUserList','data'=>$list];
+        $str=json_encode($data,true);
+        Gateway::sendToClient($client_id,$str);
+    }
+
 }
