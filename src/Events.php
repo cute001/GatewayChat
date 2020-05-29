@@ -28,10 +28,18 @@ use Workerman\MySQL\Connection;
  */
 class Events implements EventsInterface
 {
+    //实例化DB
     public  $db = null;
+    //实例化REDIS
     public  $redis=null;
+    //当前实例名
     private $name;
+    //当前实配置
     private $config;
+    //默认共公操作
+    const BASE_ROUTE='?base';
+    //默认路由
+    const DEFAULT_ROUTE='default';
 
     public function __construct( Config $config)
     {
@@ -64,7 +72,8 @@ class Events implements EventsInterface
             $this->redis= new \Redis();
             $this->redis->connect($redis_host,$redis_port);
         }
-        $this->callback('?base',__FUNCTION__,[$worker]);
+        $controller=Route::get($this->name,static::BASE_ROUTE);
+        static::callback($controller,__FUNCTION__,[$worker]);
     }
 
     /**
@@ -83,22 +92,21 @@ class Events implements EventsInterface
             $path= rtrim(ltrim($path,'/') ,'/');
             $controller=Route::get($this->name,$path);
             if(!$controller){
-                $path='default';
+                $path=static::DEFAULT_ROUTE;
                 $controller=Route::get($this->name,$path);
             }
             $_SESSION['_path']=$path;
-            if($controller){
-                $this->callback(
-                    $path,
-                    __FUNCTION__,
-                    [
-                        $client_id,
-                        $data,
-                        $this->db,
-                        $this->redis
-                    ]
-                );
-            }
+            static::callback(
+                $controller,
+                __FUNCTION__,
+                [
+                    $client_id,
+                    $data,
+                    $this->db,
+                    $this->redis
+                ]
+            );
+
         }
     }
 
@@ -109,8 +117,9 @@ class Events implements EventsInterface
      */
     public  function onConnect($client_id)
     {
-        $path=isset($_SESSION['_path'])?$_SESSION['_path']:null;
-        $this->callback($path,__FUNCTION__,[$client_id,$this->db,$this->redis]);
+        $path=empty($_SESSION['_path'])?'default':$_SESSION['_path'];
+        $controller=Route::get($this->name,$path);
+        static::callback($controller,__FUNCTION__,[$client_id,$this->db,$this->redis]);
     }
 
     /**
@@ -120,8 +129,9 @@ class Events implements EventsInterface
      */
     public  function onMessage($client_id, $message)
     {
-        $path=isset($_SESSION['_path'])?$_SESSION['_path']:null;
-        $this->callback($path,__FUNCTION__,[$client_id,$message,$this->db,$this->redis]);
+        $path=empty($_SESSION['_path'])?'default':$_SESSION['_path'];
+        $controller=Route::get($this->name,$path);
+        static::callback($controller,__FUNCTION__,[$client_id,$message,$this->db,$this->redis]);
 //        $arr=$this->db->select('*')->from('admin_user')->row();
 //        Gateway::sendToClient($client_id, json_encode($arr,8));
 //        $key=self::$redis->keys('c:*');
@@ -134,44 +144,55 @@ class Events implements EventsInterface
      */
     public  function onClose($client_id)
     {
-        $path=isset($_SESSION['_path'])?$_SESSION['_path']:null;
-        $this->callback($path,__FUNCTION__,[$client_id,$this->db,$this->redis]);
+        $path=empty($_SESSION['_path'])?'default':$_SESSION['_path'];
+        $controller=Route::get($this->name,$path);
+        static::callback($controller,__FUNCTION__,[$client_id,$this->db,$this->redis]);
     }
 
     public function onWorkerStop($worker)
     {
-        $this->callback('?base',__FUNCTION__,[$worker]);
+        $controller=Route::get($this->name,static::BASE_ROUTE);
+        $this->callback($controller,__FUNCTION__,[$worker]);
     }
 
-    public function callback($path,$fun,$param_arr)
+    public static  function callback($controller,$fun,$param_arr)
     {
-
-        if(!$path){
+        if(empty($controller)){
             return false;
         }
 
-        $controller=Route::get($this->name,$path);
-        if(!$controller){
-            return false;
-        }
-
-        if(is_array($controller)){
-            foreach ( $controller as $item){
-                if(is_callable([$item,$fun])){
-                    if( is_string($item) ){
-                        $obj=new $item;
-                    }
-                    call_user_func_array([$obj,$fun],$param_arr);
-                }
-            }
-        }else{
+        if(is_object($controller)){
             if(is_callable([$controller,$fun])){
-                if( is_string($controller) ){
-                    $obj=new $controller;
-                }else{
-                    $obj=$controller;
+                call_user_func_array([$controller,$fun],$param_arr);
+            }
+            return false;
+        }
+
+        if(is_string($controller) ){
+            $controller=array($controller);
+        }
+
+        if(!is_array($controller)){
+            return false;
+        }
+
+        foreach ( $controller as $item){
+            if(!is_callable([$item,$fun])){
+                continue;
+            }
+
+            if(is_object($item)){
+                call_user_func_array([$item,$fun],$param_arr);
+            }
+
+            if(is_string($item)) {
+                $rm = new \ReflectionMethod($item, $fun);
+                if ($rm->isStatic()) {
+                    $item = $item;
+                } else {
+                    $item = new $item;
                 }
-                call_user_func_array([$obj,$fun],$param_arr);
+                call_user_func_array([$item,$fun],$param_arr);
             }
         }
     }

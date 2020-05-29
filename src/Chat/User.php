@@ -23,8 +23,8 @@ class User
         Gateway::joinGroup($client_id,$group);
         Gateway::bindUid($client_id,$id);
         $data=['type'=>'userLogin','id'=>$id];
-        $data=json_encode($data,true);
-        Gateway::sendToGroup($group,$data);
+        $str=json_encode($data,true);
+        Gateway::sendToGroup($group,$str);
     }
     /**
      * 更新用户
@@ -35,11 +35,11 @@ class User
      */
     public static function updateInfo($client_id, $data, Connection $db,  \Redis $redis)
     {
-        if(!empty($data['data']) && !empty($data['data']['id']) ){
-            $redis->hSet(Chat::$user_info, $data['data']['id'],json_encode($data['data'],true));
-            $data=['userInfo'=>$data['data'],'type'=>'updateInfo'];
-            $data=json_encode($data,true);
-            Gateway::sendToGroup(Chat::$group,$data);
+        if(!empty($data['id']) ){
+            $redis->hSet(Chat::$user_info, $data['id'],json_encode($data,true));
+            $data=['userInfo'=>$data,'type'=>'updateInfo'];
+            $str=json_encode($data,true);
+            Gateway::sendToGroup(Chat::$group,$str);
         }
     }
 
