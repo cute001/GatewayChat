@@ -23,7 +23,7 @@ class User
         Gateway::joinGroup($client_id,$group);
         Gateway::bindUid($client_id,$id);
         $data=['type'=>'userLogin','id'=>$id];
-        $str=json_encode($data,true);
+        $str=json_encode($data,320);
         Gateway::sendToGroup($group,$str);
     }
     /**
@@ -36,9 +36,9 @@ class User
     public static function updateInfo($client_id, $data, Connection $db,  \Redis $redis)
     {
         if(!empty($data['id']) ){
-            $redis->hSet(Chat::$user_info, $data['id'],json_encode($data,true));
+            $redis->hSet(Chat::$user_info, $data['id'],json_encode($data,320));
             $data=['userInfo'=>$data,'type'=>'updateInfo'];
-            $str=json_encode($data,true);
+            $str=json_encode($data,320);
             Gateway::sendToGroup(Chat::$group,$str);
         }
     }
@@ -51,7 +51,7 @@ class User
         }
         $list=$redis->hMGet(Chat::$user_info,$online);
         $data=['type'=>'recordUserList','data'=>$list];
-        $str=json_encode($data,true);
+        $str=json_encode($data,320);
         Gateway::sendToClient($client_id,$str);
     }
 
