@@ -17,6 +17,13 @@ class PrivateChat
             $receive=$data['receive'];
             $send=$data['send'];
             $data['time']=time();
+            $message_id=$redis->rPop(Chat::$private_id_list);
+            if( empty($message_id) ){
+                $this->upDateMessageIdList($redis);
+                $message_id=$redis->rPop(Chat::$private_id_list);
+            }
+            $message_id=((int)date('Ymd'))*100000000 +(int)$message_id;
+            $data['message_id']=$message_id;
             $responser=['type'=>'recordConversation','data'=>$data];
             /*$message_id=$redis->lPop('');
             if($message_id)
@@ -58,5 +65,19 @@ class PrivateChat
         $arr=['type'=>'recordList','data'=>$data];
         $str=json_encode($arr,320);
         Gateway::sendToUid($send,$str);
+    }
+
+    /**
+     * 添加消息ID队列
+     * */
+    private function upDateMessageIdList(\Redis $redis)
+    {
+        $start=(int)$redis->get(Chat::$private_id_start);
+        $end=$start+10000;
+        $arr = range( $start,$end) ;
+        shuffle($arr);
+        $redis->rPush(Chat::$private_id_list,...$arr);
+        ++$end;
+        $redis->set(Chat::$private_id_start,$end);
     }
 }

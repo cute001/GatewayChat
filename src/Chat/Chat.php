@@ -38,10 +38,10 @@ class Chat implements OnMessageInterface,OnCloseInterface,OnConnectInterface,OnW
     /* ----------私聊相关---------- */
     //私聊消息记录(列表) [前缀 +uid ] send_id + receive_id
     public static $private_list='chat:l_private_';
-    // 私聊消息ID
-    public static $private_message_id_list='chat:l_private_m_id_';
-    // 私聊消息记录
-    public static $private_message_c_list='chat:l_private_m_id_';
+    // 私聊消息ID列表
+    public static $private_id_list='chat:l_private_id';
+    // 私聊消息记录起始娄
+    public static $private_id_start='chat:s_private_start';
 
     /* ----------群聊相关---------- */
     //群聊房间信息列表
