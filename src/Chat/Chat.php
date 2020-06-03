@@ -29,15 +29,15 @@ class Chat implements OnMessageInterface,OnCloseInterface,OnConnectInterface,OnW
 
     /* ----------好友关系----------*/
     //用户关系表/好友列表（有序合合集） [前缀 +uid]  根据用户发送信息先后排序，即每个用户将会有一个表
-    public static $user_relation='chat:z_user_relation_';
+    public static $user_relation='chat:relation:z_user_';
     //用户关系 请求列表（哈希）  [前缀 +uid] 一个用户对应一个表 一个请求用户ID对应一个field，请求容对应value
-    public static $user_request='chat:h_user_request_';
+    public static $user_request='chat:request:h_user_';
     //用户系统消息表前缀(列表) [前缀 +uid]
-    public static $user_system='chat:l_user_system_';
+    public static $user_system='chat:system:l_user_';
 
     /* ----------私聊相关---------- */
     //私聊消息记录(列表) [前缀 +uid ] send_id + receive_id
-    public static $private_list='chat:l_private_';
+    public static $private_list='chat:private:l_';
     // 私聊消息ID列表
     public static $private_id_list='chat:l_private_id';
     // 私聊消息记录起始娄

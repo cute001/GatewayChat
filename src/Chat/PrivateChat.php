@@ -34,7 +34,7 @@ class PrivateChat
             if(!$redis->exists($key)){
                 $key=Chat::$private_list.$send.'_'.$receive;
             }
-            $redis->lPush($key,$str);
+            $redis->rPush($key,$str);
 
             $str=json_encode($responser,320);
             Gateway::sendToUid($receive,$str);
