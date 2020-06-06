@@ -11,7 +11,7 @@ use Workerman\MySQL\Connection;
 class PrivateChat
 {
     //转发私聊
-    public function send($client_id, $data,Connection $db,\Redis $redis)
+    public static function send($client_id, $data,Connection $db,\Redis $redis)
     {
         if(isset($data['receive']) && isset($data['send'])){
             $receive=$data['receive'];
@@ -19,7 +19,7 @@ class PrivateChat
             $data['time']=time();
             $message_id=$redis->rPop(Chat::$private_id_list);
             if( empty($message_id) ){
-                $this->upDateMessageIdList($redis);
+                static::upDateMessageIdList($redis);
                 $message_id=$redis->rPop(Chat::$private_id_list);
             }
             $message_id=((int)date('Ymd'))*100000000 +(int)$message_id;
@@ -46,7 +46,7 @@ class PrivateChat
     }
 
     //拉取消息
-    public function getRecord($client_id, $data,Connection $db,\Redis $redis)
+    public static function getRecord($client_id, $data,Connection $db,\Redis $redis)
     {
         if(empty($data['receive']) ||  empty($data['send'])){
             return false;
@@ -70,7 +70,7 @@ class PrivateChat
     /**
      * 添加消息ID队列
      * */
-    private function upDateMessageIdList(\Redis $redis)
+    private static function upDateMessageIdList(\Redis $redis)
     {
         $start=(int)$redis->get(Chat::$private_id_start);
         $end=$start+10000;

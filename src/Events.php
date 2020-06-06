@@ -43,6 +43,9 @@ class Events implements EventsInterface
 
     public function __construct( Config $config)
     {
+        if(empty($config->get('database'))){
+            $config=new Config();
+        }
         $this->config=$config;
     }
 
@@ -54,7 +57,7 @@ class Events implements EventsInterface
         $name=$worker->name;
         $length=strlen($name)-strlen(App::BUSINESS_WORKER);
         $this->name=substr($name,0,$length);
-        $config=new Config();
+        $config=$this->config;
         $database=$config->get('database');
         $host=$config->get('database.hostname');
         $port=$config->get('database.hostport');
@@ -190,7 +193,7 @@ class Events implements EventsInterface
                 if ($rm->isStatic()) {
                     $item = $item;
                 } else {
-                    $item = new $item;
+                    $item = new $item(...$param_arr);
                 }
                 call_user_func_array([$item,$fun],$param_arr);
             }

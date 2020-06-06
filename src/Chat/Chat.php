@@ -14,7 +14,7 @@ use GatewayChat\Events;
 use GatewayChat\JwtAuth;
 use GatewayWorker\Lib\Gateway;
 use Workerman\MySQL\Connection;
-class Chat implements OnMessageInterface,OnCloseInterface,OnConnectInterface,OnWebSocketConnectInterface
+class Chat //implements OnMessageInterface,OnCloseInterface,OnConnectInterface,OnWebSocketConnectInterface
 {
     //用户所在组 所有进入聊天室的即加入此组
     public static $group= 'chat';
@@ -51,7 +51,7 @@ class Chat implements OnMessageInterface,OnCloseInterface,OnConnectInterface,OnW
     //聊天室信息（哈希）？？？
     public static $chat_room='';
 
-    public function onMessage($client_id, $message, Connection $db, \Redis $redis)
+    public static function onMessage($client_id, $message, Connection $db, \Redis $redis)
     {
         // TODO: Implement onMessage() method.
         $data=json_decode($message,true);
@@ -66,18 +66,18 @@ class Chat implements OnMessageInterface,OnCloseInterface,OnConnectInterface,OnW
     public function onClose($client_id,Connection  $db,\Redis $redis)
     {
         // TODO: Implement onClose() method.
-        if(isset( $_SESSION['id']) ){
+        if(isset( $_SESSION['id']) && !Gateway::isUidOnline($_SESSION['id']) ){
             $redis->sRem(self::$user_online,$_SESSION['id']);
         }
 
     }
 
-    public function onConnect($client_id, Connection $db,\Redis $redis)
+    public static function onConnect($client_id, Connection $db,\Redis $redis)
     {
         // TODO: Implement onConnect() method.
     }
 
-    public function onWebSocketConnect($client_id, $data,Connection $db,\Redis $redis)
+    public static function onWebSocketConnect($client_id, $data,Connection $db,\Redis $redis)
     {
         // TODO: Implement onWebSocketConnect() method.
         if(empty($data['get']) || empty($data['get']['token'] ) || empty($data['get']['id'] ) ){

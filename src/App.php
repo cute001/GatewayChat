@@ -134,6 +134,10 @@ class App
         // 服务注册地址 ，多端口必改
         $worker->registerAddress = $lan_ip.':'.$bus_port;
         //回调类
+        /**
+         * 这里用的是实例化的对象，所以对BusinessWorker 需要进行改造
+         * 因为是实例化的对象，所以可以设置不同的数据库实列
+         * */
         $worker->eventHandler= new \GatewayChat\Events($serve);
     }
 

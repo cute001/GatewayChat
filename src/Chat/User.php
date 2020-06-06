@@ -43,7 +43,7 @@ class User
         }
     }
 
-    public function getUserList($client_id, $data, Connection $db,  \Redis $redis)
+    public static function getUserList($client_id, $data, Connection $db,  \Redis $redis)
     {
         $online=isset($data['online']) ? $data['online'] : $redis->sMembers(Chat::$user_online);
         if(empty($online)){
