@@ -155,7 +155,7 @@ class Events implements EventsInterface
     public function onWorkerStop($worker)
     {
         $controller=Route::get($this->name,static::BASE_ROUTE);
-        $this->callback($controller,__FUNCTION__,[$worker]);
+        static::callback($controller,__FUNCTION__,[$worker]);
     }
 
     public static  function callback($controller,$fun,$param_arr)
@@ -178,14 +178,18 @@ class Events implements EventsInterface
         if(!is_array($controller)){
             return false;
         }
-
+        $break=true;
         foreach ( $controller as $item){
+            if(!$break){
+                break;
+            }
+
             if(!is_callable([$item,$fun])){
                 continue;
             }
 
             if(is_object($item)){
-                call_user_func_array([$item,$fun],$param_arr);
+                $break=call_user_func_array([$item,$fun],$param_arr);
             }
 
             if(is_string($item)) {
@@ -195,7 +199,7 @@ class Events implements EventsInterface
                 } else {
                     $item = new $item(...$param_arr);
                 }
-                call_user_func_array([$item,$fun],$param_arr);
+                $break=call_user_func_array([$item,$fun],$param_arr);
             }
         }
     }

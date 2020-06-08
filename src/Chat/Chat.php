@@ -66,7 +66,7 @@ class Chat //implements OnMessageInterface,OnCloseInterface,OnConnectInterface,O
     public function onClose($client_id,Connection  $db,\Redis $redis)
     {
         // TODO: Implement onClose() method.
-        if(isset( $_SESSION['id']) && !Gateway::isUidOnline($_SESSION['id']) ){
+        if(isset( $_SESSION['id']) && Gateway::isUidOnline($_SESSION['id'])===0 ){
             $redis->sRem(self::$user_online,$_SESSION['id']);
         }
 
